@@ -183,7 +183,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
   }
   
   Widget _buildVoiceOverlayContent() {
-    return Container(
+    return SizedBox(
       height: widget.theme.sizes.inputContainerHeight,
       child: Stack(
         children: [
@@ -213,7 +213,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
   }
   
   Widget _buildIdleMode() {
-    return Container(
+    return SizedBox(
       height: widget.theme.sizes.inputContainerHeight,
       child: Stack(
         alignment: Alignment.center,
@@ -236,7 +236,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
   }
   
   Widget _buildVoiceInputMode() {
-    return Container(
+    return SizedBox(
       height: widget.theme.sizes.inputContainerHeight,
       child: Stack(
         alignment: Alignment.center,
@@ -413,7 +413,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
   }
   
   Widget _buildToolbar() {
-    return Container(
+    return SizedBox(
       height: widget.theme.sizes.inputToolbarHeight,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

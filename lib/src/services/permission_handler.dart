@@ -55,7 +55,6 @@ class PermissionHandler {
       final status = await permission.request();
       return status == PermissionStatus.granted;
     } catch (e) {
-      debugPrint('Permission request failed: $e');
       return false;
     }
   }
@@ -66,7 +65,6 @@ class PermissionHandler {
       final status = await permission.status;
       return status == PermissionStatus.granted;
     } catch (e) {
-      debugPrint('Permission check failed: $e');
       return false;
     }
   }

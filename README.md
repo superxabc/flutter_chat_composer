@@ -4,31 +4,38 @@
 
 ## 简介
 
-Flutter Chat Composer 是一个现代化、多功能的聊天输入组件，支持文字、语音、图片、文件等多种输入方式。组件采用简洁的设计，支持主题定制和多种交互模式。
+Flutter Chat Composer 是一个功能丰富、高度可定制的多模态聊天输入组件，专为 Flutter 应用程序设计，旨在提供直观且流畅的用户体验。它支持文字、语音、图片和文件等多种输入方式，并具备智能自适应布局和顺畅的交互。
 
 ## 特性
 
-- ✅ **多模态输入**：文字、语音、图片、文件输入
-- ✅ **三种输入模式**：空闲模式、文字模式、语音模式
-- ✅ **自适应布局**：文本输入框自适应高度（2-6行）
-- ✅ **主题定制**：完整的主题系统，支持扁平、简洁和自定义风格
-- ✅ **SVG图标系统**：精美的自定义SVG图标，自动适配主题色
-- ✅ **触觉反馈**：提供良好的用户体验
-- ✅ **权限处理**：自动处理相机、麦克风、存储权限
+- **多模态输入**：支持文字、语音、图片和文件等多种输入方式。
+- **自适应高度**：文本输入区域支持自适应高度调节（2-6行）。
+- **分层布局**：采用上下分层结构，输入区域和工具栏分离。
+- **流畅交互**：简化的模式切换和智能的状态恢复机制。
+- **统一底部动画**：无需依赖 `Scaffold.resizeToAvoidBottomInset`，即可实现系统键盘与自定义功能面板（MoreArea）之间的无缝平滑切换，并自动处理底部安全区域适配。
+- **主题定制**：支持 `flat`、`clean` 预设主题和完全自定义主题。
+- **语音录制**：直观的长按录制功能，支持手势识别（滑动取消）和丰富的视觉反馈（覆盖层、波点动画）。
+- **错误处理**：提供全面的错误分类和用户友好的提示，涵盖网络、权限、录制和文件相关问题。
+- **性能优化**：利用 `RepaintBoundary`、`AnimatedBuilder` 和防抖技术，确保动画流畅并高效更新状态。
+- **SVG 图标系统**：内置精美的自定义 SVG 图标，并能自动适配主题色。
+- **触觉反馈**：提供良好的用户体验。
+- **权限处理**：自动检查和请求相机、麦克风、存储权限。
 
 ## 安装
 
-在 `pubspec.yaml` 文件中添加：
+将此组件添加为本地包或 Git 依赖项到您的 `pubspec.yaml` 中：
 
 ```yaml
 dependencies:
-  flutter_chat_composer: ^2.0.0
+  flutter_chat_composer:
+    path: path/to/your/local/flutter_chat_composer_directory
+    # 或者从 Git:
+    # git:
+    #   url: https://github.com/your-repo/flutter_chat_composer.git
+    #   ref: main # 或特定分支/标签
 ```
 
-运行命令：
-```bash
-flutter pub get
-```
+添加后，运行 `flutter pub get`。
 
 ## 基本用法
 
@@ -50,86 +57,86 @@ ChatComposer(
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_composer/flutter_chat_composer.dart';
-import 'package:flutter_chat_composer/src/chat_input_types.dart'; // 导入 ChatContent 和 ChatInputErrorType
-
-// 假设的聊天消息模型
-class ChatMessage {
-  final String text;
-  final ChatContentType type;
-  final DateTime timestamp;
-
-  ChatMessage({required this.text, required this.type, required this.timestamp});
-}
 
 class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
+
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final List<ChatMessage> _messages = [];
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Chat Composer Example')),
+      appBar: AppBar(title: const Text('Chat Composer Example')),
       body: Column(
         children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return ListTile(
-                  title: Text(message.text),
-                  subtitle: Text('${message.type.name} - ${message.timestamp.toLocal()}'),
-                );
-              },
+          const Expanded(
+            child: Center(
+              child: Text('Your chat messages will appear here.'),
             ),
           ),
           ChatComposer(
-            onSubmit: _handleSubmit,
+            onSubmit: (content) {
+              switch (content.type) {
+                case ChatContentType.text:
+                  print('Text message: ${content.text}');
+                  // 处理文本消息提交
+                  break;
+                case ChatContentType.voice:
+                  print('Voice message: ${content.voiceFilePath}, Duration: ${content.voiceDuration}');
+                  // 处理语音消息提交
+                  break;
+                case ChatContentType.image:
+                  print('Image message: ${content.imageFilePath}');
+                  // 处理图片消息提交
+                  break;
+                case ChatContentType.file:
+                  print('File message: ${content.filePath}');
+                  // 处理文件消息提交
+                  break;
+              }
+            },
             onModeChange: (mode) {
-              print('模式切换：$mode');
+              print('模式切换: $mode');
+            },
+            onVoiceRecordingStateChange: (state) {
+              print('语音录制状态: $state');
             },
             onTextChange: (text) {
-              print('文本变化：$text');
+              print('文本变化: $text');
             },
             onError: (error) {
-              print('错误：${error.message}');
-              // 根据错误类型进行处理，例如显示SnackBar
+              print('Chat Composer 错误: ${error.message}');
+              // 根据错误类型进行处理，例如显示 SnackBar 或 Dialog
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('错误: ${error.message}')),
               );
             },
-            config: ChatComposerConfig(
-              enableVoiceRecording: true, // 启用语音录制
-              enableMoreActions: true,    // 启用更多操作面板
+            onStatusChange: (status) {
+              print('组件状态: $status');
+            },
+            config: const ChatComposerConfig(
+              enableVoice: true,          // 启用语音输入
+              enableCamera: true,         // 启用相机功能
+              enableMoreButton: true,     // 启用更多功能按钮
               enableHapticFeedback: true, // 启用触觉反馈
               maxTextLength: 500,         // 最大文本长度
               minTextLines: 2,            // 最小行数
               maxTextLines: 6,            // 最大行数
-              maxRecordingDuration: Duration(minutes: 2), // 最大录制时长
+              maxVoiceDuration: 60,       // 最大语音录制时长 (秒)
             ),
             placeholder: '输入消息...',
             sendHintText: '发消息或按住说话',
             holdToTalkText: '按住 说话',
+            autoFocus: false,
+            enabled: true,
+            debounceDelay: 300,
           ),
         ],
       ),
     );
-  }
-  
-  void _handleSubmit(ChatContent content) {
-    setState(() {
-      _messages.add(ChatMessage(
-        text: content.text ?? content.voiceFilePath ?? content.imageFilePath ?? content.filePath ?? '未知内容',
-        type: content.type,
-        timestamp: DateTime.now(),
-      ));
-    });
-    // 实际应用中，这里会将消息发送到后端或进行其他处理
-    print('提交内容: $content');
   }
 }
 ```
@@ -158,16 +165,18 @@ ChatComposer(
   
   // 可选回调
   onModeChange: (ChatInputMode mode) {},
+  onVoiceRecordingStateChange: (VoiceRecordingState state) {},
   onTextChange: (String text) {},
   onError: (ChatInputError error) {},
   onStatusChange: (ChatInputStatus status) {},
   
   // 配置 (通过 ChatComposerConfig 对象进行配置)
-  config: ChatComposerConfig(
+  config: const ChatComposerConfig(
     maxTextLength: 1000,           // 最大文本长度
-    maxRecordingDuration: Duration(seconds: 60), // 最大语音时长(秒)
-    enableVoiceRecording: true,    // 启用语音录制功能
-    enableMoreActions: true,       // 启用更多功能面板
+    maxVoiceDuration: 60,          // 最大语音时长(秒)
+    enableVoice: true,             // 启用语音输入功能
+    enableCamera: true,            // 启用相机功能
+    enableMoreButton: true,        // 启用更多功能面板
     enableHapticFeedback: true,    // 启用触觉反馈
     minTextLines: 2,               // 文本输入框最小行数
     maxTextLines: 6,               // 文本输入框最大行数
@@ -181,6 +190,29 @@ ChatComposer(
   // 主题 (通过 themeStyle 或 theme 属性进行配置)
   themeStyle: ChatThemeStyle.flat, // 预设主题风格
   // theme: ChatComposerTheme.custom(...), // 自定义主题
+  
+  // 控制器 (可选，用于外部控制)
+  // controller: ChatInputController(),
+  // textController: TextEditingController(),
+  // focusNode: FocusNode(),
+  
+  // 更多按钮点击回调
+  // onMoreButtonTap: () {},
+  
+  // 初始文本
+  // initialText: 'Hello',
+  
+  // 是否自动聚焦
+  // autoFocus: false,
+  
+  // 是否启用
+  // enabled: true,
+  
+  // 背景颜色
+  // backgroundColor: Colors.grey[100],
+  
+  // 防抖延迟
+  // debounceDelay: 300,
 )
 ```
 
@@ -193,9 +225,6 @@ Flutter Chat Composer 提供了三种预设主题风格和完全自定义主题�
 通过 `themeStyle` 属性选择预设主题：
 
 ```dart
-import 'package:flutter_chat_composer/flutter_chat_composer.dart';
-import 'package:flutter_chat_composer/src/theme/chat_composer_theme.dart'; // 导入 ChatThemeStyle
-
 // 扁平风格 (默认)
 ChatComposer(
   themeStyle: ChatThemeStyle.flat,
@@ -214,10 +243,6 @@ ChatComposer(
 通过 `theme` 属性提供一个 `ChatComposerTheme` 实例进行完全自定义：
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_chat_composer/flutter_chat_composer.dart';
-import 'package:flutter_chat_composer/src/theme/chat_composer_theme.dart'; // 导入 ChatComposerTheme
-
 ChatComposer(
   themeStyle: ChatThemeStyle.custom, // 必须设置为 custom 才能使用 theme 属性
   theme: ChatComposerTheme.custom(
@@ -232,6 +257,15 @@ ChatComposer(
 )
 ```
 
+### 3. 基于Material主题
+
+```dart
+ChatComposer(
+  theme: ChatComposerTheme.fromMaterial(Theme.of(context)),
+  onSubmit: (content) {},
+)
+```
+
 ## 功能配置
 
 ### 1. 配置对象 (ChatComposerConfig)
@@ -240,51 +274,83 @@ ChatComposer(
 
 ```dart
 ChatComposer(
-  config: ChatComposerConfig(
-    enableVoiceRecording: true,       // 启用语音录制 (默认 true)
-    enableMoreActions: true,          // 启用更多操作面板 (默认 true)
-    enableHapticFeedback: true,       // 启用触觉反馈 (默认 true)
-    maxTextLength: 500,               // 最大文本长度 (默认 1000)
-    minTextLines: 2,                  // 文本输入框最小行数 (默认 2)
-    maxTextLines: 6,                  // 文本输入框最大行数 (默认 6)
-    maxRecordingDuration: Duration(minutes: 2),  // 最大录制时长 (默认 2分钟)
-    // allowedFileTypes: ['pdf', 'doc', 'txt'], // 允许的文件类型 (目前未实现，文档已移除)
-    // maxFileSize: 10,                  // 最大文件大小(MB) (目前未实现，文档已移除)
+  config: const ChatComposerConfig(
+    enableVoice: true,          // 启用语音输入 (默认 true)
+    enableCamera: true,         // 启用相机功能 (默认 true)
+    enableMoreButton: true,     // 启用更多功能按钮 (默认 true)
+    enableHapticFeedback: true, // 启用触觉反馈 (默认 true)
+    maxTextLength: 1000,        // 最大文本长度 (默认 1000)
+    minTextLines: 2,            // 文本输入框最小行数 (默认 2)
+    maxTextLines: 6,            // 文本输入框最大行数 (默认 6)
+    maxVoiceDuration: 60,       // 最大语音录制时长 (秒，默认 60)
   ),
   onSubmit: (content) {},
 )
 ```
 
-### 2. 自定义更多操作
+## 外部控制器
 
-通过 `customMoreActions` 属性提供自定义的更多操作项：
+组件支持外部控制器来实现程序化控制：
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_chat_composer/flutter_chat_composer.dart';
-import 'package:flutter_chat_composer/src/chat_input_types.dart'; // 导入 MoreActionItem
+class ChatScreen extends StatefulWidget {
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
 
-ChatComposer(
-  customMoreActions: [
-    MoreActionItem(
-      icon: Icons.location_on,
-      label: '位置',
-      onTap: () {
-        // 处理位置分享逻辑
-        print('分享位置');
-      },
-    ),
-    MoreActionItem(
-      icon: Icons.gif,
-      label: 'GIF',
-      onTap: () {
-        // 处理GIF选择逻辑
-        print('选择GIF');
-      },
-    ),
-  ],
-  onSubmit: (content) {},
-)
+class _ChatScreenState extends State<ChatScreen> {
+  late ChatInputController _chatController;
+  late TextEditingController _textController;
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _chatController = ChatInputController();
+    _textController = TextEditingController();
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    _textController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          // ... 其他内容
+          ChatComposer(
+            controller: _chatController,
+            textController: _textController,
+            focusNode: _focusNode,
+            onSubmit: (content) {
+              // 处理提交
+            },
+          ),
+          // 外部控制按钮
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: () => _chatController.switchToTextMode(),
+                child: Text('切换到文本模式'),
+              ),
+              ElevatedButton(
+                onPressed: () => _chatController.closeMoreArea(),
+                child: Text('关闭更多面板'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
 ```
 
 ## 错误处理
@@ -292,10 +358,6 @@ ChatComposer(
 组件通过 `onError` 回调报告内部发生的错误，例如权限拒绝、录音失败等。
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_chat_composer/flutter_chat_composer.dart';
-import 'package:flutter_chat_composer/src/chat_input_types.dart'; // 导入 ChatInputErrorType
-
 ChatComposer(
   onError: (ChatInputError error) {
     switch (error.type) {
@@ -373,14 +435,34 @@ A: 组件会自动请求所需权限。您只需要在 `onError` 回调中处理
 A: 通过 `ChatComposerConfig` 对象来禁用相应功能：
 ```dart
 ChatComposer(
-  config: ChatComposerConfig(
-    enableVoiceRecording: false, // 禁用语音录制
-    enableMoreActions: false,    // 禁用更多功能面板
-    // enableCamera 属性目前在 ChatComposerConfig 中不存在，相机功能由 MoreActionItem 控制
+  config: const ChatComposerConfig(
+    enableVoice: false,    // 禁用语音输入
+    enableMoreButton: false, // 禁用更多功能面板
+    enableCamera: false,   // 禁用相机功能
   ),
   onSubmit: (content) {},
 )
 ```
+
+### Q: 如何自定义更多面板的功能？
+A: 可以通过 `onMoreButtonTap` 回调来自定义更多按钮的行为，或者监听组件内部的功能面板操作：
+```dart
+ChatComposer(
+  onMoreButtonTap: () {
+    // 自定义更多按钮点击行为
+    print('更多按钮被点击');
+  },
+  onSubmit: (content) {
+    // 处理从更多面板选择的内容
+    if (content.metadata?['source'] == 'gallery') {
+      print('从相册选择的图片');
+    }
+  },
+)
+```
+
+### Q: 组件是否支持键盘适配？
+A: 是的，组件有独立的键盘适配系统，无需依赖 `Scaffold.resizeToAvoidBottomInset`。它会自动处理键盘弹出时的布局调整，确保输入区域始终可见。
 
 ## 更新日志
 

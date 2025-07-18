@@ -11,7 +11,8 @@
 - **智能适应**：文字输入框支持自适应高度调节（2-6行）
 - **分层布局**：采用上下分层结构，输入区域和工具栏分离
 - **流畅交互**：简化的模式切换，智能的状态恢复机制
-- **主题定制**：支持 flat、clean 主题和完全自定义
+- **主题定制**：支持 flat、clean、custom 主题和完全自定义
+- **独立键盘适配**：无需依赖 `Scaffold.resizeToAvoidBottomInset`，即可实现系统键盘与自定义功能面板的无缝切换
 
 ## 界面布局设计
 
@@ -86,7 +87,7 @@
 - **波点动画**：8个白色波点的连续动画效果
 
 #### 更多功能面板
-- **固定高度**：基于屏幕宽度计算的固定高度
+- **响应式高度**：基于屏幕宽度和内容计算的动态高度
 - **水平布局**：5个功能按钮水平排列
 - **键盘交互**：在文字模式下展开时，键盘收起但保持面板显示
 
@@ -124,21 +125,21 @@ stateDiagram-v2
 ```mermaid
 graph TD
     A[监听键盘高度] --> B[MediaQuery.viewInsets.bottom]
-    B --> C[AnimatedPadding 动态调整]
+    B --> C[AnimatedContainer 动态调整]
     C --> D[组件整体上移]
     D --> E[InputArea 始终可见]
     D --> F[MoreArea 可被键盘遮挡]
 ```
 
-### 4. “统一的底部动画容器”交互解析
+### 4. "统一的底部动画容器"交互解析
 
-为了实现键盘和功能面板之间流畅、无缝的切换，组件内部采用了一套精巧的“统一的底部动画容器”方案。我们可以用“魔法电梯”来比喻它的工作方式：
+为了实现键盘和功能面板之间流畅、无缝的切换，组件内部采用了一套精巧的"统一的底部动画容器"方案：
 
-- **一个“魔法电梯”**：组件底部有一个看不见的“电梯”（`AnimatedContainer`），它的核心职责就是通过改变自身高度，将上方的输入区域（`InputArea`）向上顶起。
-- **两种“乘客”**：
-  1.  **系统键盘**：当用户点击输入框时，系统键盘就是乘客。“魔法电梯”会以极快的速度（与系统动画同步）升起，高度与键盘完全一致，将输入框精准地顶到键盘上方。
-  2.  **功能面板 (`MoreArea`)**：当用户点击 `+` 按钮时，功能面板就是乘客。“魔法电梯”会以一个平滑的动画升起，将功能面板从底部优雅地“托举”上来。
-- **无缝交接**：当用户从文字输入模式（键盘已弹出）点击 `+` 按钮时，方案能确保“系统键盘”这位乘客优雅地退场，同时“功能面板”乘客无缝地登场，避免了视觉上的抖动和卡顿，保证了极致流畅的交互体验。
+- **一个"魔法电梯"**：组件底部有一个看不见的"电梯"（`AnimatedContainer`），它的核心职责就是通过改变自身高度，将上方的输入区域（`InputArea`）向上顶起。
+- **两种"乘客"**：
+  1.  **系统键盘**：当用户点击输入框时，系统键盘就是乘客。"魔法电梯"会以极快的速度（与系统动画同步）升起，高度与键盘完全一致，将输入框精准地顶到键盘上方。
+  2.  **功能面板 (`MoreArea`)**：当用户点击 `+` 按钮时，功能面板就是乘客。"魔法电梯"会以一个平滑的动画升起，将功能面板从底部优雅地"托举"上来。
+- **无缝交接**：当用户从文字输入模式（键盘已弹出）点击 `+` 按钮时，方案能确保"系统键盘"这位乘客优雅地退场，同时"功能面板"乘客无缝地登场，避免了视觉上的抖动和卡顿，保证了极致流畅的交互体验。
 
 这个统一的方案，使得无论是应对系统键盘还是内部自定义的功能面板，组件都能提供一致、稳定且符合物理直觉的动画效果。
 
@@ -146,12 +147,12 @@ graph TD
 
 ### 键盘适配优势
 - **独立适配**：不依赖父级 Scaffold 配置
-- **精确控制**：通过 AnimatedPadding 实现平滑过渡
+- **精确控制**：通过 AnimatedContainer 实现平滑过渡
 - **布局保持**：MoreArea 相对位置保持不变
 
 ### 自适应布局
 - **响应式宽度**：MoreArea 根据屏幕宽度自动计算布局
-- **固定高度**：基于内容计算的精确高度控制
+- **动态高度**：基于内容和屏幕宽度计算的精确高度控制
 - **项目间距**：统一的 16px 间距设计
 
 ### 语音录制特性
@@ -168,9 +169,43 @@ graph TD
 ## 主题与定制
 
 ### 主题支持
-- **Flat 主题**：科技蓝边框风格，适合现代应用
-- **Clean 主题**：90%黑色无边框阴影风格，简洁大方
-- **Custom 主题**：完全自定义的颜色和样式
+- **Flat 主题**：科技蓝边框风格，适合现代应用（`ChatThemeStyle.flat`）
+- **Clean 主题**：90%黑色无边框阴影风格，简洁大方（`ChatThemeStyle.clean`）
+- **Custom 主题**：完全自定义的颜色和样式（`ChatThemeStyle.custom`）
+
+### 主题配置方式
+
+#### 1. 预设主题风格
+```dart
+ChatComposer(
+  themeStyle: ChatThemeStyle.flat, // 或 ChatThemeStyle.clean
+  onSubmit: (content) {},
+)
+```
+
+#### 2. 完全自定义主题
+```dart
+ChatComposer(
+  themeStyle: ChatThemeStyle.custom, // 必须设置为 custom
+  theme: ChatComposerTheme.custom(
+    primaryColor: Colors.deepPurple,
+    backgroundColor: Colors.grey[100]!,
+    surfaceColor: Colors.white,
+    hasBorder: true,
+    hasShadow: true,
+    borderRadius: 12.0,
+  ),
+  onSubmit: (content) {},
+)
+```
+
+#### 3. 基于Material主题
+```dart
+ChatComposer(
+  theme: ChatComposerTheme.fromMaterial(Theme.of(context)),
+  onSubmit: (content) {},
+)
+```
 
 ### 主题配置项
 - **颜色系统**：primary、surface、background 等完整配色
@@ -189,6 +224,22 @@ graph TD
 - **麦克风权限**：录制前自动检查和请求
 - **相机权限**：拍照前权限验证
 - **文件权限**：文件选择时的权限处理
+
+## 配置系统
+
+### ChatComposerConfig 配置选项
+```dart
+ChatComposerConfig(
+  enableVoice: true,          // 启用语音输入
+  enableCamera: true,         // 启用相机功能
+  enableMoreButton: true,     // 启用更多功能按钮
+  enableHapticFeedback: true, // 启用触觉反馈
+  maxTextLength: 1000,        // 最大文本长度
+  minTextLines: 2,            // 文本输入框最小行数
+  maxTextLines: 6,            // 文本输入框最大行数
+  maxVoiceDuration: 60,       // 最大语音录制时长（秒）
+)
+```
 
 ## 无障碍与国际化
 

@@ -26,7 +26,6 @@ ChatComposer (StatefulWidget)
 │   ├── ChatInputController (状态控制器)
 │   ├── TextEditingController (文本输入控制)
 │   ├── FocusNode (焦点管理)
-│   ├── AnimationController (键盘动画)
 │   ├── ChatComposerTheme (主题管理)
 │   └── StreamSubscription (网络监听)
 ├── InputArea (输入区域 StatefulWidget)
@@ -42,7 +41,8 @@ ChatComposer (StatefulWidget)
 ├── ChatComposerTheme (主题系统)
 │   ├── flat() 工厂方法
 │   ├── clean() 工厂方法
-│   └── custom() 工厂方法
+│   ├── custom() 工厂方法
+│   └── fromMaterial() 工厂方法
 ├── ChatInputController (状态控制器)
 ├── VoiceService (语音录制服务)
 ├── PermissionHandler (权限处理)
@@ -117,10 +117,6 @@ class _ChatComposerState extends State<ChatComposer>
   // 主题管理
   late ChatComposerTheme _theme;
   
-  // 动画控制器
-  late AnimationController _keyboardAnimationController;
-  late Animation<double> _keyboardAnimation;
-  
   // 工具类
   Timer? _debounceTimer;
   StreamSubscription<ConnectivityResult>? _connectivitySubscription;
@@ -131,7 +127,6 @@ class _ChatComposerState extends State<ChatComposer>
     super.initState();
     _initializeComponents();
     _initializeTheme();
-    _initializeAnimations();
     _initializeListeners();
     _initializeConnectivity();
   }
@@ -139,7 +134,6 @@ class _ChatComposerState extends State<ChatComposer>
   @override
   void dispose() {
     _disposeControllers();
-    _disposeAnimations();
     _disposeListeners();
     _disposeTimers();
     _disposeSubscriptions();
@@ -401,7 +395,15 @@ class ChatComposerTheme {
             ),
           ],
         ),
-        shadowDecoration: null,
+        shadowDecoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8.0,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -440,7 +442,61 @@ class ChatComposerTheme {
             ),
           ] : null,
         ),
-        shadowDecoration: null,
+        shadowDecoration: hasShadow ? BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8.0,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ) : null,
+      ),
+    );
+  }
+  
+  /// 基于Material主题创建
+  factory ChatComposerTheme.fromMaterial(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+    
+    return ChatComposerTheme(
+      colors: ChatThemeColors(
+        primary: primaryColor,
+        background: Colors.transparent,
+        surface: theme.colorScheme.surface,
+        onSurface: theme.colorScheme.onSurface,
+        hint: primaryColor.withOpacity(0.3),
+        disabled: theme.disabledColor,
+        error: theme.colorScheme.error,
+      ),
+      sizes: const ChatThemeSizes(),
+      styles: const ChatThemeStyles(),
+      decorations: ChatThemeDecorations(
+        containerDecoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          border: Border.all(
+            color: primaryColor,
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: isDark ? null : [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8.0,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        shadowDecoration: isDark ? null : BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8.0,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -491,41 +547,78 @@ Widget _buildWavePointAnimation() {
 该方案可以解构成四个协同工作的核心组件：
 
 1.  **`AnimatedContainer` (动画容器)**
-    *   **职责**: 作为“升降机”，通过改变自身`height`属性，为下方的键盘或`MoreArea`提供占位空间，从而将上方的`InputArea`向上推。
+    *   **职责**: 作为"升降机"，通过改变自身`height`属性，为下方的键盘或`MoreArea`提供占位空间，从而将上方的`InputArea`向上推。
     *   **智能变速**: 当切换目标是系统键盘时，其`duration`设置为`Duration.zero`，实现与系统动画的瞬时同步；当切换目标是`MoreArea`时，则使用主题预设的`duration`和`curve`，实现平滑的自定义动画。
 
 2.  **`AnimatedSwitcher` (内容切换器)**
-    *   **职责**: 负责在“空内容”（一个`key`为`'empty'`的`Container`）和“`MoreArea`”之间进行带动画的切换。
+    *   **职责**: 负责在"空内容"（一个`key`为`'empty'`的`Container`）和"`MoreArea`"之间进行带动画的切换。
     *   **性能优化**: 为了避免动画启动时的卡顿，`MoreArea`和空`Container`都在`build`方法中被提前构建为`final`变量。`AnimatedSwitcher`只负责在这两个预构建的实例之间切换，消除了在动画第一帧即时构建复杂组件所带来的性能开销。
 
-3.  **`OverflowBox` (布局约束“欺骗”器)**
+3.  **`OverflowBox` (布局约束"欺骗"器)**
     *   **职责**: 这是解决动画过程中布局异常的关键。它包裹`MoreArea`，并为其提供一个固定的、有界的`maxHeight`约束（其值等于`MoreArea`的完整高度）。
     *   **解决的问题**: 它允许`MoreArea`在`AnimatedContainer`高度从0开始增长的动画过程中，始终以其最终的、完整的尺寸进行布局，从而避免了因接收到过小的临时高度约束而导致的`RenderFlex overflowed`和`unbounded height`异常。
 
 4.  **`ClipRect` (内容裁剪器)**
     *   **职责**: 包裹在`AnimatedContainer`内部，负责将`OverflowBox`中超出`AnimatedContainer`当前动画高度的`MoreArea`部分进行裁剪。
-    *   **视觉效果**: 正是`ClipRect`的存在，使得用户看到的是`MoreArea`随着`AnimatedContainer`的扩张而平滑“滑入”或“展开”的视觉效果，而不是突然出现。
+    *   **视觉效果**: 正是`ClipRect`的存在，使得用户看到的是`MoreArea`随着`AnimatedContainer`的扩张而平滑"滑入"或"展开"的视觉效果，而不是突然出现。
 
 **最终实现代码结构如下**: 
 
 ```dart
 // 1. 在build方法中提前构建两个切换状态的Widget
-final Widget moreAreaWidget = OverflowBox(...);
-final Widget emptyWidget = Container(...);
+final Widget moreAreaWidget = OverflowBox(
+  key: const ValueKey('more_area'),
+  minHeight: 0.0,
+  maxHeight: moreGridItemHeight,
+  alignment: Alignment.topCenter,
+  child: MoreArea(...),
+);
 
-// ... 计算bottomContainerHeight
+final Widget emptyWidget = Container(
+  key: const ValueKey('empty'),
+  height: 0,
+);
 
-// 2. 在布局中使用动画组件
+// 2. 计算底部容器高度
+double bottomContainerHeight;
+if (_controller.currentMode == ChatInputMode.text) {
+  bottomContainerHeight = keyboardHeight;
+} else if (shouldShowMoreArea) {
+  bottomContainerHeight = moreGridItemHeight;
+} else {
+  bottomContainerHeight = 0.0;
+}
+
+// 3. 在布局中使用动画组件
 Column(
   children: [
     InputArea(...),
-    if (shouldShowMoreArea) const SizedBox(height: 16.0), // 间距
+    if (shouldShowMoreArea && _controller.currentMode != ChatInputMode.text)
+      const SizedBox(height: 16.0), // 间距
     AnimatedContainer( // 动画容器
+      duration: _controller.currentMode == ChatInputMode.text
+          ? Duration.zero // 文本模式跟随键盘，无动画延迟
+          : _theme.styles.animationDuration, // 其他模式使用主题动画时长
+      curve: Curves.decelerate,
       height: bottomContainerHeight,
       child: ClipRect( // 裁剪器
         child: AnimatedSwitcher( // 内容切换器
-          transitionBuilder: (child, animation) => SlideTransition(...), // 滑动特效
-          child: shouldShowMoreArea ? moreAreaWidget : emptyWidget, // 使用预构建的Widget
+          duration: _controller.currentMode == ChatInputMode.text
+              ? Duration.zero
+              : _theme.styles.animationDuration,
+          switchInCurve: Curves.decelerate,
+          switchOutCurve: Curves.decelerate,
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.0, 1.0), // 从下方开始
+                end: Offset.zero, // 滑到正常位置
+              ).animate(animation),
+              child: child,
+            );
+          },
+          child: shouldShowMoreArea && _controller.currentMode != ChatInputMode.text
+              ? moreAreaWidget : emptyWidget, // 使用预构建的Widget
         ),
       ),
     ),
@@ -618,6 +711,12 @@ enum ChatContentType {
   voice,  // 语音消息
   image,  // 图片消息
   file,   // 文件消息
+}
+
+enum ChatThemeStyle {
+  flat,   // 扁平风格主题
+  clean,  // 简洁风格主题
+  custom, // 自定义主题
 }
 ```
 
@@ -829,6 +928,19 @@ class ChatComposerSvgIcons {
     );
   }
   
+  static Widget sendIcon({double? size, Color? color}) {
+    return Semantics(
+      label: '发送',
+      child: SvgPicture.asset(
+        send,
+        package: 'flutter_chat_composer',
+        width: size ?? 24,
+        height: size ?? 24,
+        colorMapper: color != null ? _SendIconColorMapper(color) : null,
+      ),
+    );
+  }
+  
   // 其他图标方法...
 }
 
@@ -891,17 +1003,52 @@ Widget build(BuildContext context) {
 }
 ```
 
-### 2. 内存管理
+### 2. Widget选择优化
+
+组件在设计时遵循了Flutter性能最佳实践：
+
+**SizedBox vs Container优化：**
+```dart
+// ✅ 优化后 - 仅需要尺寸约束时使用SizedBox
+Widget _buildIdleMode() {
+  return SizedBox(
+    height: widget.theme.sizes.inputContainerHeight,
+    child: Stack(...),
+  );
+}
+
+// ❌ 避免 - 不要为简单尺寸约束使用Container
+Widget _buildIdleMode() {
+  return Container(
+    height: widget.theme.sizes.inputContainerHeight,
+    child: Stack(...),
+  );
+}
+```
+
+**Const构造函数优化：**
+```dart
+// 所有可能的地方都使用const构造函数
+const ChatContent(
+  type: ChatContentType.image,
+  imageFilePath: 'path/to/image.jpg',
+  metadata: {'source': 'gallery'},
+);
+
+const TextStyle(
+  color: Colors.white,
+  fontSize: 16,
+  fontWeight: FontWeight.w500,
+);
+```
+
+### 3. 内存管理
 
 ```dart
 @override
 void dispose() {
   // 控制器清理
   _disposeControllers();
-  
-  // 动画控制器清理
-  _keyboardAnimationController.dispose();
-  _voiceAnimationController.dispose();
   
   // 监听器清理
   WidgetsBinding.instance.removeObserver(this);
@@ -917,7 +1064,7 @@ void dispose() {
 }
 ```
 
-### 3. 防抖处理
+### 4. 防抖处理
 
 ```dart
 void _handleTextChange() {
@@ -988,6 +1135,7 @@ ChatComposer(
 
 ```dart
 ChatComposer(
+  themeStyle: ChatThemeStyle.custom,
   theme: ChatComposerTheme.custom(
     primaryColor: Colors.blue,
     backgroundColor: Colors.grey[100]!,
@@ -1085,5 +1233,12 @@ Flutter Chat Composer组件提供了完整的多模态输入解决方案，具�
 - **回调机制**：丰富的事件回调和状态监听
 - **服务注入**：支持外部服务的注入和替换
 - **错误处理**：分类的错误处理和用户友好的提示
+
+### 代码质量
+- **零警告**：通过Flutter Analyze全面检查，无任何代码质量警告
+- **性能优化**：使用SizedBox替代Container进行空白布局，优化渲染性能
+- **Const优化**：所有可能的构造函数都使用const关键字，减少重建开销
+- **内存管理**：完整的dispose机制，避免内存泄漏
+- **代码简洁**：移除了所有演示代码、调试语句和未使用的类型定义
 
 这个组件为Flutter应用提供了专业级的聊天输入体验，适合各种聊天场景的应用需求。 

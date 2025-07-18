@@ -103,7 +103,6 @@ class _ChatComposerState extends State<ChatComposer>
   late ChatComposerTheme _theme;
   
   Timer? _debounceTimer;
-  
   StreamSubscription<ConnectivityResult>? _connectivitySubscription;
   
 
@@ -273,8 +272,8 @@ class _ChatComposerState extends State<ChatComposer>
     final double widthForItemsAndInternalSpacing = availableWidthForMoreArea - (2 * moreAreaListViewPadding);
     final double itemContentWidth = (widthForItemsAndInternalSpacing - (itemCount - 1) * itemSpacing) / itemCount;
     
-    final double textHeight = 11.0 * 1.2;
-    final double safetyMargin = 6.0;
+    const double textHeight = 11.0 * 1.2;
+    const double safetyMargin = 6.0;
     final double moreGridItemHeight = itemContentWidth + 6.0 + textHeight + safetyMargin;
     
     final bool shouldShowMoreArea = _controller.showMoreArea;
@@ -405,8 +404,6 @@ class _ChatComposerState extends State<ChatComposer>
     if (!widget.enabled) return;
     
     try {
-      // 这里实现相机功能，可以选择拍照或从相册选择
-      // 为了演示，我们创建一个简单的选择对话框
       final action = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
@@ -430,15 +427,12 @@ class _ChatComposerState extends State<ChatComposer>
       );
       
       if (action != null) {
-        // 这里可以调用相机或相册功能
-        // 示例：创建一个图片内容对象
         final content = ChatContent(
           type: ChatContentType.image,
-          imageFilePath: 'path/to/selected/image.jpg', // 实际使用时替换为真实路径
+          imageFilePath: 'path/to/selected/image.jpg',
           metadata: {'source': action},
         );
         
-        // 提交图片内容
         widget.onSubmit(content);
       }
     } catch (e) {
@@ -536,15 +530,10 @@ class _ChatComposerState extends State<ChatComposer>
   }
   
   VoidCallback? _getRetryCallback(ChatInputError error) {
-    // 根据错误类型提供重试回调
     switch (error.type) {
       case ChatInputErrorType.networkError:
         return () {
-          // 重试网络操作
           _handleSubmit();
-        };
-      case ChatInputErrorType.permissionDenied:
-        return () {
         };
       default:
         return null;
@@ -577,15 +566,12 @@ class _ChatComposerState extends State<ChatComposer>
       case 'more':
         _handleMoreFunction();
         break;
-      default:
-        print('Unknown action: $action');
     }
   }
   
   Future<void> _handleGallerySelection() async {
     try {
-      // 从相册选择图片的逻辑
-      final content = ChatContent(
+      const content = ChatContent(
         type: ChatContentType.image,
         imageFilePath: 'path/to/gallery/image.jpg',
         metadata: {'source': 'gallery'},
@@ -602,8 +588,7 @@ class _ChatComposerState extends State<ChatComposer>
   
   Future<void> _handleFileSelection() async {
     try {
-      // 文件选择逻辑
-      final content = ChatContent(
+      const content = ChatContent(
         type: ChatContentType.file,
         filePath: 'path/to/selected/file.pdf',
         metadata: {'source': 'file_picker'},
@@ -619,17 +604,14 @@ class _ChatComposerState extends State<ChatComposer>
   }
   
   void _handleScanFunction() {
-    // 扫描功能逻辑
     _showToast('扫描功能开发中');
   }
   
   void _handleCallFunction() {
-    // 通话功能逻辑
     _showToast('通话功能开发中');
   }
   
   void _handleMoreFunction() {
-    // 更多功能逻辑
     _showToast('更多功能开发中');
   }
   

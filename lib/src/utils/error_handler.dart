@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../chat_input_types.dart';
 import '../services/permission_handler.dart';
 
@@ -174,22 +173,6 @@ class ChatErrorHandler {
             ),
           ),
         ],
-      ),
-    );
-  }
-  
-  static void _showErrorDialog(
-    BuildContext context, {
-    required String title,
-    required String message,
-    required List<Widget> actions,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: actions,
       ),
     );
   }

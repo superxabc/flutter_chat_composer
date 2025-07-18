@@ -120,9 +120,6 @@ class VoiceService {
       fromURI: filePath,
       codec: Codec.aacADTS,
     );
-
-    _playerSubscription = _player!.onProgress!.listen((e) {
-    });
   }
 
   Future<void> stopPlayback() async {

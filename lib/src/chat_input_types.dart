@@ -93,40 +93,9 @@ class ChatInputError {
   }
 }
 
-enum TextInputState {
-  collapsed,
-}
-
 enum VoiceGestureState {
   recording,
   cancelMode,
-}
-
-enum AudioFormat {
-  aac,
-  mp3,
-  wav,
-  m4a,
-}
-
-class VoiceRecordingConfig {
-  final Duration minRecordingDuration;
-  final Duration maxRecordingDuration;
-  final int sampleRate;
-  final int bitRate;
-  final bool enableWaveform;
-  final bool enableNoiseReduction;
-  final AudioFormat audioFormat;
-  
-  const VoiceRecordingConfig({
-    this.minRecordingDuration = const Duration(seconds: 1),
-    this.maxRecordingDuration = const Duration(minutes: 2),
-    this.sampleRate = 16000,
-    this.bitRate = 128000,
-    this.enableWaveform = true,
-    this.enableNoiseReduction = true,
-    this.audioFormat = AudioFormat.aac,
-  });
 }
 
  

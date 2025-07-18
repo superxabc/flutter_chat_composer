@@ -56,11 +56,6 @@ class ChatInputController extends ChangeNotifier {
     _checkMicrophonePermission();
   }
   
-  @override
-  void dispose() {
-    super.dispose();
-  }
-  
   Future<void> _checkMicrophonePermission() async {
     try {
       final hasPermission = await PermissionHandler.checkPermission(
@@ -347,7 +342,6 @@ class ChatInputController extends ChangeNotifier {
   }
   
   void _handleError(ChatInputError error) {
-    debugPrint('ChatInputController Error: ${error.message}');
     onError?.call(error);
   }
   
