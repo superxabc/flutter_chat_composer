@@ -9,7 +9,7 @@ class ChatButton extends StatelessWidget {
   final String? semanticLabel;
   final ChatComposerTheme? theme;
   final bool showPressedState;
-  
+
   const ChatButton({
     Key? key,
     required this.icon,
@@ -20,13 +20,14 @@ class ChatButton extends StatelessWidget {
     this.theme,
     this.showPressedState = false,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
-    final effectiveTheme = theme ?? ChatComposerTheme.fromMaterial(Theme.of(context));
+    final effectiveTheme =
+        theme ?? ChatComposerTheme.fromMaterial(Theme.of(context));
     final isEnabled = enabled && onPressed != null;
     final buttonSize = size ?? effectiveTheme.sizes.buttonSize;
-    
+
     return SizedBox(
       width: buttonSize,
       height: buttonSize,
@@ -56,7 +57,7 @@ class _ButtonGestureDetector extends StatefulWidget {
   final ChatComposerTheme theme;
   final double size;
   final Widget child;
-  
+
   const _ButtonGestureDetector({
     required this.onPressed,
     required this.showPressedState,
@@ -64,14 +65,14 @@ class _ButtonGestureDetector extends StatefulWidget {
     required this.size,
     required this.child,
   });
-  
+
   @override
   State<_ButtonGestureDetector> createState() => _ButtonGestureDetectorState();
 }
 
 class _ButtonGestureDetectorState extends State<_ButtonGestureDetector> {
   bool _isPressed = false;
-  
+
   void _handleTapDown(TapDownDetails details) {
     if (widget.onPressed != null && widget.showPressedState) {
       setState(() {
@@ -79,7 +80,7 @@ class _ButtonGestureDetectorState extends State<_ButtonGestureDetector> {
       });
     }
   }
-  
+
   void _handleTapUp(TapUpDetails details) {
     if (_isPressed) {
       setState(() {
@@ -87,7 +88,7 @@ class _ButtonGestureDetectorState extends State<_ButtonGestureDetector> {
       });
     }
   }
-  
+
   void _handleTapCancel() {
     if (_isPressed) {
       setState(() {
@@ -95,11 +96,11 @@ class _ButtonGestureDetectorState extends State<_ButtonGestureDetector> {
       });
     }
   }
-  
+
   void _handleTap() {
     widget.onPressed?.call();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -112,7 +113,7 @@ class _ButtonGestureDetectorState extends State<_ButtonGestureDetector> {
         duration: const Duration(milliseconds: 100),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: _isPressed 
+          color: _isPressed
               ? widget.theme.colors.primary.withOpacity(0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(widget.size / 2),
@@ -127,13 +128,13 @@ class _ButtonContent extends StatelessWidget {
   final Widget icon;
   final bool isEnabled;
   final ChatComposerTheme theme;
-  
+
   const _ButtonContent({
     required this.icon,
     required this.isEnabled,
     required this.theme,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -164,10 +165,11 @@ class ChatButtonBuilder {
       showPressedState: showPressedState,
     );
   }
-  
+
   static Widget themed({
     Key? key,
-    required Widget Function(BuildContext context, {double? size, Color? color}) iconBuilder,
+    required Widget Function(BuildContext context, {double? size, Color? color})
+        iconBuilder,
     required BuildContext context,
     VoidCallback? onPressed,
     bool enabled = true,
@@ -176,11 +178,12 @@ class ChatButtonBuilder {
     ChatComposerTheme? theme,
     bool showPressedState = false,
   }) {
-    final effectiveTheme = theme ?? ChatComposerTheme.fromMaterial(Theme.of(context));
-    final iconColor = enabled 
-        ? effectiveTheme.colors.primary 
+    final effectiveTheme =
+        theme ?? ChatComposerTheme.fromMaterial(Theme.of(context));
+    final iconColor = enabled
+        ? effectiveTheme.colors.primary
         : effectiveTheme.colors.primary.withOpacity(0.3);
-    
+
     return ChatButton(
       key: key,
       icon: iconBuilder(
@@ -196,4 +199,4 @@ class ChatButtonBuilder {
       showPressedState: showPressedState,
     );
   }
-} 
+}

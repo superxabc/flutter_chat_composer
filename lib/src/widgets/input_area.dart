@@ -20,7 +20,7 @@ class InputArea extends StatefulWidget {
   final VoidCallback? onCameraCapture;
   final VoidCallback? onMoreButtonTap;
   final VoidCallback? onSubmit;
-  
+
   const InputArea({
     Key? key,
     required this.controller,
@@ -45,20 +45,20 @@ class InputArea extends StatefulWidget {
 class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
   late AnimationController _voiceAnimationController;
   late Animation<double> _voiceAnimation;
-  
+
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _initializeListeners();
   }
-  
+
   void _initializeAnimations() {
     _voiceAnimationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _voiceAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -67,15 +67,16 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       curve: Curves.easeInOut,
     ));
   }
-  
+
   void _initializeListeners() {
     widget.controller.addListener(_handleControllerChange);
   }
-  
+
   void _handleControllerChange() {
     // 当切换到文本模式时，自动弹起键盘
     // 但如果MoreArea正在显示，则不自动聚焦，避免冲突
-    if (widget.controller.currentMode == ChatInputMode.text && !widget.controller.showMoreArea) {
+    if (widget.controller.currentMode == ChatInputMode.text &&
+        !widget.controller.showMoreArea) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !widget.focusNode.hasFocus) {
           widget.focusNode.requestFocus();
@@ -83,14 +84,14 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       });
     }
   }
-  
+
   @override
   void dispose() {
     widget.controller.removeListener(_handleControllerChange);
     _voiceAnimationController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -102,29 +103,29 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
         } else {
           _voiceAnimationController.stop();
         }
-        
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // 提示文案容器
             _buildHintContainer(),
-            
+
             // 输入区域容器
             _buildInputContainer(),
-          
           ],
         );
       },
     );
   }
-  
+
   Widget _buildHintContainer() {
     return Container(
       height: 25.0,
       margin: const EdgeInsets.only(bottom: 4.0),
       child: widget.controller.showVoiceOverlay
           ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.5),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.5),
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(8.0),
@@ -143,45 +144,45 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
           : const SizedBox.shrink(),
     );
   }
-  
+
   Widget _buildInputContainer() {
     return GestureDetector(
-      onTap: (widget.enabled && widget.controller.currentMode == ChatInputMode.idle) 
-          ? _handleCenterTap 
+      onTap: (widget.enabled &&
+              widget.controller.currentMode == ChatInputMode.idle)
+          ? _handleCenterTap
           : null,
-      onLongPressStart: (widget.controller.currentMode == ChatInputMode.idle || 
-                          (widget.controller.currentMode == ChatInputMode.voice && 
-                           !widget.controller.isRecording))
-          ? _handleVoiceRecordingStart 
+      onLongPressStart: (widget.controller.currentMode == ChatInputMode.idle ||
+              (widget.controller.currentMode == ChatInputMode.voice &&
+                  !widget.controller.isRecording))
+          ? _handleVoiceRecordingStart
           : null,
-      onLongPressMoveUpdate: widget.controller.isRecording 
-          ? _handleVoiceRecordingUpdate 
-          : null,
-      onLongPressEnd: widget.controller.isRecording 
-          ? _handleVoiceRecordingEnd 
-          : null,
+      onLongPressMoveUpdate:
+          widget.controller.isRecording ? _handleVoiceRecordingUpdate : null,
+      onLongPressEnd:
+          widget.controller.isRecording ? _handleVoiceRecordingEnd : null,
       child: Container(
-        decoration: widget.controller.showVoiceOverlay 
+        decoration: widget.controller.showVoiceOverlay
             ? _buildVoiceOverlayDecoration()
             : widget.theme.decorations.containerDecoration,
-        child: widget.controller.showVoiceOverlay 
+        child: widget.controller.showVoiceOverlay
             ? _buildVoiceOverlayContent()
             : _buildInputContent(),
       ),
     );
   }
-  
+
   BoxDecoration _buildVoiceOverlayDecoration() {
-    final color = widget.controller.voiceGestureState == VoiceGestureState.cancelMode 
-        ? widget.theme.colors.error 
-        : widget.theme.colors.primary;
-    
+    final color =
+        widget.controller.voiceGestureState == VoiceGestureState.cancelMode
+            ? widget.theme.colors.error
+            : widget.theme.colors.primary;
+
     return BoxDecoration(
       color: color,
       borderRadius: BorderRadius.circular(widget.theme.sizes.borderRadius),
     );
   }
-  
+
   Widget _buildVoiceOverlayContent() {
     return SizedBox(
       height: widget.theme.sizes.inputContainerHeight,
@@ -200,7 +201,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildInputContent() {
     switch (widget.controller.currentMode) {
       case ChatInputMode.text:
@@ -211,7 +212,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
         return _buildIdleMode();
     }
   }
-  
+
   Widget _buildIdleMode() {
     return SizedBox(
       height: widget.theme.sizes.inputContainerHeight,
@@ -224,7 +225,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildTextInputMode() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -234,7 +235,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ],
     );
   }
-  
+
   Widget _buildVoiceInputMode() {
     return SizedBox(
       height: widget.theme.sizes.inputContainerHeight,
@@ -247,7 +248,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildButtonLayout() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -258,7 +259,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ],
     );
   }
-  
+
   Widget _buildRightButtons() {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -269,10 +270,10 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ],
     );
   }
-  
+
   Widget _buildModeToggleButton() {
     return _buildIconButton(
-      icon: widget.controller.currentMode == ChatInputMode.voice 
+      icon: widget.controller.currentMode == ChatInputMode.voice
           ? ChatComposerSvgIcons.keyboardIcon(
               size: widget.theme.sizes.iconSize,
               color: widget.theme.colors.primary,
@@ -282,10 +283,11 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
               color: widget.theme.colors.primary,
             ),
       onPressed: widget.onModeToggle,
-      semanticLabel: widget.controller.currentMode == ChatInputMode.voice ? '键盘' : '麦克风',
+      semanticLabel:
+          widget.controller.currentMode == ChatInputMode.voice ? '键盘' : '麦克风',
     );
   }
-  
+
   Widget _buildCameraButton() {
     return _buildIconButton(
       icon: ChatComposerSvgIcons.cameraIcon(
@@ -296,7 +298,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       semanticLabel: '相机',
     );
   }
-  
+
   Widget _buildMoreButton() {
     return _buildIconButton(
       icon: ChatComposerSvgIcons.moreIcon(
@@ -307,23 +309,23 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       semanticLabel: '更多',
     );
   }
-  
+
   Widget _buildSendButton() {
     final hasText = widget.textController.text.trim().isNotEmpty;
     final isEnabled = widget.enabled && hasText;
-    
+
     return _buildIconButton(
       icon: ChatComposerSvgIcons.sendIcon(
         size: widget.theme.sizes.iconSize,
-        color: isEnabled ? widget.theme.colors.primary : widget.theme.colors.disabled,
+        color: isEnabled
+            ? widget.theme.colors.primary
+            : widget.theme.colors.disabled,
       ),
       onPressed: isEnabled ? widget.onSubmit : null,
       semanticLabel: '发送',
     );
   }
-  
 
-  
   Widget _buildIconButton({
     Widget? icon,
     IconData? materialIcon,
@@ -338,7 +340,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
     } else {
       iconWidget = const Icon(Icons.help);
     }
-    
+
     return ChatButton(
       icon: iconWidget,
       onPressed: onPressed,
@@ -349,27 +351,27 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       showPressedState: false,
     );
   }
-  
+
   Widget _buildCenterText(String text) {
     return Positioned.fill(
       child: Container(
-        alignment: widget.controller.currentMode == ChatInputMode.idle 
-            ? Alignment.centerLeft 
+        alignment: widget.controller.currentMode == ChatInputMode.idle
+            ? Alignment.centerLeft
             : Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         margin: EdgeInsets.only(
-          left: widget.controller.currentMode == ChatInputMode.idle 
-              ? widget.theme.sizes.buttonSize + 8.0  // 减少左侧间距
+          left: widget.controller.currentMode == ChatInputMode.idle
+              ? widget.theme.sizes.buttonSize + 8.0 // 减少左侧间距
               : 0,
-          right: widget.controller.currentMode == ChatInputMode.idle 
-              ? _calculateRightButtonsWidth() + 8.0   // 减少右侧间距
+          right: widget.controller.currentMode == ChatInputMode.idle
+              ? _calculateRightButtonsWidth() + 8.0 // 减少右侧间距
               : 0,
         ),
         child: Text(
           text,
           style: widget.theme.styles.hintText.copyWith(
-            color: widget.controller.currentMode == ChatInputMode.voice 
-                ? widget.theme.colors.primary 
+            color: widget.controller.currentMode == ChatInputMode.voice
+                ? widget.theme.colors.primary
                 : widget.theme.colors.hint,
             fontWeight: FontWeight.bold,
           ),
@@ -377,7 +379,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildTextInputField() {
     return Container(
       constraints: BoxConstraints(
@@ -411,7 +413,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildToolbar() {
     return SizedBox(
       height: widget.theme.sizes.inputToolbarHeight,
@@ -427,7 +429,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildWavePointAnimation() {
     return AnimatedBuilder(
       animation: _voiceAnimation,
@@ -437,9 +439,11 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(8, (index) {
             final animationValue = (_voiceAnimation.value + index * 0.15) % 1.0;
-            final scale = 0.4 + (sin(animationValue * 2 * pi) * 0.5 + 0.5) * 0.6;
-            final opacity = 0.4 + (sin(animationValue * 2 * pi) * 0.5 + 0.5) * 0.6;
-            
+            final scale =
+                0.4 + (sin(animationValue * 2 * pi) * 0.5 + 0.5) * 0.6;
+            final opacity =
+                0.4 + (sin(animationValue * 2 * pi) * 0.5 + 0.5) * 0.6;
+
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 2.0),
               child: Transform.scale(
@@ -459,7 +463,7 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       },
     );
   }
-  
+
   void _handleCenterTap() {
     widget.onCenterTap?.call();
     if (widget.controller.currentMode == ChatInputMode.text) {
@@ -470,15 +474,15 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       });
     }
   }
-  
+
   void _handleVoiceRecordingStart(LongPressStartDetails details) {
     widget.controller.startVoiceRecording();
   }
-  
+
   void _handleVoiceRecordingUpdate(LongPressMoveUpdateDetails details) {
     widget.controller.updateVoiceGesture(details.localPosition.dy);
   }
-  
+
   void _handleVoiceRecordingEnd(LongPressEndDetails details) {
     if (widget.controller.voiceGestureState == VoiceGestureState.recording) {
       widget.controller.finishVoiceRecording();
@@ -486,8 +490,8 @@ class _InputAreaState extends State<InputArea> with TickerProviderStateMixin {
       widget.controller.cancelVoiceRecording();
     }
   }
-  
+
   double _calculateRightButtonsWidth() {
     return widget.theme.sizes.buttonSize * 2 + widget.theme.sizes.buttonGap * 2;
   }
-} 
+}

@@ -12,7 +12,8 @@ class ChatErrorHandler {
   }) {
     switch (error.type) {
       case ChatInputErrorType.networkError:
-        _handleNetworkError(context, error, onRetry, showDialog, snackBarDuration);
+        _handleNetworkError(
+            context, error, onRetry, showDialog, snackBarDuration);
         break;
       case ChatInputErrorType.permissionDenied:
         _handlePermissionError(context, error, showDialog);
@@ -31,7 +32,7 @@ class ChatErrorHandler {
         break;
     }
   }
-  
+
   static void _handleNetworkError(
     BuildContext context,
     ChatInputError error,
@@ -42,7 +43,7 @@ class ChatErrorHandler {
     // 网络错误使用toast提示
     _showToast(context, error.message, snackBarDuration);
   }
-  
+
   static void _handlePermissionError(
     BuildContext context,
     ChatInputError error,
@@ -51,7 +52,7 @@ class ChatErrorHandler {
     // 权限错误始终使用弹窗引导用户
     _showPermissionDialog(context, error);
   }
-  
+
   static void _handleRecordingError(
     BuildContext context,
     ChatInputError error,
@@ -61,7 +62,7 @@ class ChatErrorHandler {
     // 录音错误使用toast提示
     _showToast(context, error.message, snackBarDuration);
   }
-  
+
   static void _handleFileSizeError(
     BuildContext context,
     ChatInputError error,
@@ -71,7 +72,7 @@ class ChatErrorHandler {
     // 文件大小错误使用toast提示
     _showToast(context, error.message, snackBarDuration);
   }
-  
+
   static void _handleValidationError(
     BuildContext context,
     ChatInputError error,
@@ -81,7 +82,7 @@ class ChatErrorHandler {
     // 验证错误使用toast提示
     _showToast(context, error.message, snackBarDuration);
   }
-  
+
   static void _handleUnknownError(
     BuildContext context,
     ChatInputError error,
@@ -91,11 +92,12 @@ class ChatErrorHandler {
     // 未知错误使用toast提示
     _showToast(context, error.message, snackBarDuration);
   }
-  
-  static void _showPermissionDialog(BuildContext context, ChatInputError error) {
+
+  static void _showPermissionDialog(
+      BuildContext context, ChatInputError error) {
     final permissionName = _getPermissionName(error.permissionType);
     final permissionIcon = _getPermissionIcon(error.permissionType);
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -176,7 +178,7 @@ class ChatErrorHandler {
       ),
     );
   }
-  
+
   static void _showSnackBar(
     BuildContext context, {
     required String message,
@@ -185,9 +187,9 @@ class ChatErrorHandler {
     SnackBarAction? action,
   }) {
     final messenger = ScaffoldMessenger.of(context);
-    
+
     messenger.clearSnackBars();
-    
+
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -204,8 +206,9 @@ class ChatErrorHandler {
       ),
     );
   }
-  
-  static Future<void> _openSettings(BuildContext context, ChatInputError error) async {
+
+  static Future<void> _openSettings(
+      BuildContext context, ChatInputError error) async {
     try {
       await PermissionHandler.openSettings();
     } catch (e) {
@@ -218,7 +221,7 @@ class ChatErrorHandler {
       }
     }
   }
-  
+
   static String _getPermissionName(ChatPermissionType? permissionType) {
     switch (permissionType) {
       case ChatPermissionType.microphone:
@@ -233,7 +236,7 @@ class ChatErrorHandler {
         return '权限';
     }
   }
-  
+
   static IconData _getPermissionIcon(ChatPermissionType? permissionType) {
     switch (permissionType) {
       case ChatPermissionType.microphone:
@@ -248,7 +251,7 @@ class ChatErrorHandler {
         return Icons.security;
     }
   }
-  
+
   static void showSuccess(
     BuildContext context,
     String message, {
@@ -261,7 +264,7 @@ class ChatErrorHandler {
       duration: duration ?? const Duration(seconds: 2),
     );
   }
-  
+
   static void showInfo(
     BuildContext context,
     String message, {
@@ -275,7 +278,8 @@ class ChatErrorHandler {
     );
   }
 
-  static void _showToast(BuildContext context, String message, Duration? duration) {
+  static void _showToast(
+      BuildContext context, String message, Duration? duration) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -306,28 +310,28 @@ class RetryHelper {
     bool Function(dynamic error)? shouldRetry,
   }) async {
     int attempts = 0;
-    
+
     while (attempts < maxRetries) {
       try {
         return await operation();
       } catch (e) {
         attempts++;
-        
+
         if (attempts >= maxRetries) {
           rethrow;
         }
-        
+
         if (shouldRetry != null && !shouldRetry(e)) {
           rethrow;
         }
-        
+
         await Future.delayed(delay);
       }
     }
-    
+
     throw Exception('重试失败');
   }
-  
+
   static Future<T> retryNetworkOperation<T>(
     Future<T> Function() operation, {
     int maxRetries = 3,
@@ -339,9 +343,9 @@ class RetryHelper {
       delay: delay,
       shouldRetry: (error) {
         return error.toString().contains('network') ||
-               error.toString().contains('timeout') ||
-               error.toString().contains('connection');
+            error.toString().contains('timeout') ||
+            error.toString().contains('connection');
       },
     );
   }
-} 
+}

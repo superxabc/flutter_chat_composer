@@ -10,26 +10,26 @@ class ChatInputController extends ChangeNotifier {
   ChatInputStatus _currentStatus = ChatInputStatus.idle;
   VoiceRecordingState _voiceRecordingState = VoiceRecordingState.idle;
   VoiceGestureState _voiceGestureState = VoiceGestureState.recording;
-  
+
   bool _showVoiceOverlay = false;
   bool _isRecording = false;
   bool _hasMicrophonePermission = false;
   bool _showMoreArea = false;
-  
+
   ChatInputMode? _preRecordingMode;
-  
+
   final VoiceService _voiceService = VoiceService();
-  
+
   final bool enableHapticFeedback;
   final int maxTextLength;
   final int maxVoiceDuration;
-  
+
   final Function(ChatContent content)? onSubmit;
   final Function(ChatInputMode mode)? onModeChange;
   final Function(VoiceRecordingState state)? onVoiceRecordingStateChange;
   final Function(ChatInputError error)? onError;
   final Function(ChatInputStatus status)? onStatusChange;
-  
+
   ChatInputController({
     this.enableHapticFeedback = true,
     this.maxTextLength = 1000,
@@ -42,7 +42,7 @@ class ChatInputController extends ChangeNotifier {
   }) {
     _initializeController();
   }
-  
+
   ChatInputMode get currentMode => _currentMode;
   ChatInputStatus get currentStatus => _currentStatus;
   VoiceRecordingState get voiceRecordingState => _voiceRecordingState;
@@ -51,11 +51,11 @@ class ChatInputController extends ChangeNotifier {
   bool get isRecording => _isRecording;
   bool get hasMicrophonePermission => _hasMicrophonePermission;
   bool get showMoreArea => _showMoreArea;
-  
+
   void _initializeController() {
     _checkMicrophonePermission();
   }
-  
+
   Future<void> _checkMicrophonePermission() async {
     try {
       final hasPermission = await PermissionHandler.checkPermission(
@@ -68,43 +68,43 @@ class ChatInputController extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   void switchToTextMode() {
     if (_currentMode == ChatInputMode.text) return;
-    
+
     _currentMode = ChatInputMode.text;
     _showVoiceOverlay = false;
-    
+
     // 进入文本模式时自动展示MoreArea
     _showMoreArea = true;
-    
+
     notifyListeners();
     onModeChange?.call(_currentMode);
   }
-  
+
   void switchToVoiceMode() {
     if (_currentMode == ChatInputMode.voice) return;
-    
+
     _currentMode = ChatInputMode.voice;
     _showVoiceOverlay = false;
-    
+
     notifyListeners();
     onModeChange?.call(_currentMode);
   }
-  
+
   void switchToIdleMode() {
     if (_currentMode == ChatInputMode.idle) return;
-    
+
     _currentMode = ChatInputMode.idle;
     _showVoiceOverlay = false;
-    
+
     notifyListeners();
     onModeChange?.call(_currentMode);
   }
-  
+
   void restorePreRecordingState() {
     final targetMode = _preRecordingMode ?? ChatInputMode.idle;
-    
+
     switch (targetMode) {
       case ChatInputMode.idle:
         switchToIdleMode();
@@ -116,10 +116,10 @@ class ChatInputController extends ChangeNotifier {
         switchToIdleMode();
         break;
     }
-    
+
     _preRecordingMode = null;
   }
-  
+
   void handleMoreButtonTap() {
     _showMoreArea = !_showMoreArea;
     notifyListeners();
@@ -131,7 +131,7 @@ class ChatInputController extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   Future<void> submitText(String text) async {
     if (text.trim().isEmpty) {
       // 空内容时：退出编辑模式 + 关闭MoreArea
@@ -139,18 +139,18 @@ class ChatInputController extends ChangeNotifier {
       closeMoreArea();
       return;
     }
-    
+
     _updateStatus(ChatInputStatus.sending);
-    
+
     // 立即切换状态，不等待发送完成
     switchToIdleMode();
     closeMoreArea();
-    
+
     final content = ChatContent(
       type: ChatContentType.text,
       text: text.trim(),
     );
-    
+
     try {
       await onSubmit?.call(content);
       _updateStatus(ChatInputStatus.idle);
@@ -163,30 +163,29 @@ class ChatInputController extends ChangeNotifier {
       _updateStatus(ChatInputStatus.idle);
     }
   }
-  
+
   Future<void> startVoiceRecording() async {
     if (!_hasMicrophonePermission) {
       await _requestMicrophonePermission();
       return;
     }
-    
+
     try {
       _preRecordingMode = _currentMode;
       _isRecording = true;
       _showVoiceOverlay = true;
       _voiceRecordingState = VoiceRecordingState.recording;
       _voiceGestureState = VoiceGestureState.recording;
-      
+
       notifyListeners();
-      
+
       await _voiceService.startRecording();
-      
+
       if (enableHapticFeedback) {
         HapticFeedback.heavyImpact();
       }
-      
+
       onVoiceRecordingStateChange?.call(_voiceRecordingState);
-      
     } catch (e) {
       _handleError(ChatInputError(
         type: ChatInputErrorType.recordingFailed,
@@ -195,57 +194,57 @@ class ChatInputController extends ChangeNotifier {
       ));
     }
   }
-  
+
   void updateVoiceGesture(double dy) {
     if (!_isRecording) return;
-    
+
     const threshold = 50.0;
     VoiceGestureState newGestureState;
-    
+
     if (dy < -threshold || dy > threshold) {
       newGestureState = VoiceGestureState.cancelMode;
     } else {
       newGestureState = VoiceGestureState.recording;
     }
-    
+
     if (_voiceGestureState != newGestureState) {
       _voiceGestureState = newGestureState;
       notifyListeners();
-      
+
       if (enableHapticFeedback) {
         HapticFeedback.lightImpact();
       }
     }
   }
-  
+
   Future<void> finishVoiceRecording() async {
     if (!_isRecording) return;
-    
+
     try {
       _isRecording = false;
       _showVoiceOverlay = false;
       _voiceRecordingState = VoiceRecordingState.completed;
-      
+
       notifyListeners();
-      
+
       final recordingResult = await _voiceService.stopRecording();
-      
+
       if (recordingResult.duration.inSeconds < 1) {
         if (enableHapticFeedback) {
           HapticFeedback.heavyImpact();
         }
-        
+
         _handleError(const ChatInputError(
           type: ChatInputErrorType.recordingFailed,
           message: '录音时间太短',
         ));
         return;
       }
-      
+
       if (enableHapticFeedback) {
         HapticFeedback.mediumImpact();
       }
-      
+
       final content = ChatContent(
         type: ChatContentType.voice,
         voiceFilePath: recordingResult.filePath,
@@ -256,7 +255,7 @@ class ChatInputController extends ChangeNotifier {
           'fileSize': recordingResult.fileSize,
         },
       );
-      
+
       try {
         await onSubmit?.call(content);
         restorePreRecordingState();
@@ -267,9 +266,8 @@ class ChatInputController extends ChangeNotifier {
           originalError: submitError,
         ));
       }
-      
+
       onVoiceRecordingStateChange?.call(_voiceRecordingState);
-      
     } catch (e) {
       _handleError(ChatInputError(
         type: ChatInputErrorType.recordingFailed,
@@ -278,26 +276,25 @@ class ChatInputController extends ChangeNotifier {
       ));
     }
   }
-  
+
   Future<void> cancelVoiceRecording() async {
     if (!_isRecording) return;
-    
+
     try {
       _isRecording = false;
       _showVoiceOverlay = false;
       _voiceRecordingState = VoiceRecordingState.cancelled;
-      
+
       notifyListeners();
-      
+
       await _voiceService.cancelRecording();
-      
+
       if (enableHapticFeedback) {
         HapticFeedback.lightImpact();
       }
-      
+
       restorePreRecordingState();
       onVoiceRecordingStateChange?.call(_voiceRecordingState);
-      
     } catch (e) {
       _handleError(ChatInputError(
         type: ChatInputErrorType.recordingFailed,
@@ -306,16 +303,16 @@ class ChatInputController extends ChangeNotifier {
       ));
     }
   }
-  
+
   Future<void> _requestMicrophonePermission() async {
     try {
       final hasPermission = await PermissionHandler.requestPermission(
         PermissionType.microphone,
       );
-      
+
       _hasMicrophonePermission = hasPermission;
       notifyListeners();
-      
+
       if (!hasPermission) {
         _handleError(const ChatInputError(
           type: ChatInputErrorType.permissionDenied,
@@ -323,7 +320,6 @@ class ChatInputController extends ChangeNotifier {
           permissionType: ChatPermissionType.microphone,
         ));
       }
-      
     } catch (e) {
       _handleError(ChatInputError(
         type: ChatInputErrorType.permissionDenied,
@@ -332,19 +328,19 @@ class ChatInputController extends ChangeNotifier {
       ));
     }
   }
-  
+
   void _updateStatus(ChatInputStatus status) {
     if (_currentStatus == status) return;
-    
+
     _currentStatus = status;
     notifyListeners();
     onStatusChange?.call(status);
   }
-  
+
   void _handleError(ChatInputError error) {
     onError?.call(error);
   }
-  
+
   String getVoiceGestureText() {
     switch (_voiceGestureState) {
       case VoiceGestureState.recording:
@@ -355,4 +351,4 @@ class ChatInputController extends ChangeNotifier {
         return "松手发送，滑动取消";
     }
   }
-} 
+}

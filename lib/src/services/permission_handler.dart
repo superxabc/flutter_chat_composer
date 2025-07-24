@@ -22,9 +22,9 @@ enum PermissionResult {
 class PermissionException implements Exception {
   final String message;
   final PermissionResult result;
-  
+
   const PermissionException(this.message, this.result);
-  
+
   @override
   String toString() => 'PermissionException: $message';
 }
@@ -72,12 +72,12 @@ class PermissionHandler {
   static Future<bool> openSettings() async {
     return await openAppSettings();
   }
-  
+
   static bool get isVoiceRecordingSupported {
     if (kIsWeb) {
       return true;
     }
-    
+
     return Platform.isIOS || Platform.isAndroid;
   }
-} 
+}

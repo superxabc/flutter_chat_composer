@@ -50,7 +50,8 @@ class VoiceService {
     }
 
     final tempDir = await getTemporaryDirectory();
-    _currentRecordingPath = '${tempDir.path}/temp_recording_${DateTime.now().millisecondsSinceEpoch}.aac';
+    _currentRecordingPath =
+        '${tempDir.path}/temp_recording_${DateTime.now().millisecondsSinceEpoch}.aac';
 
     _currentRecordingDuration = Duration.zero;
 

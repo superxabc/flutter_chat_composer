@@ -28,11 +28,26 @@ class MoreArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<_MoreItem> items = [
-      _MoreItem(icon: Icons.photo_library_outlined, label: '相册', onTap: () => onActionSelected('album')),
-      _MoreItem(icon: Icons.folder_outlined, label: '文件', onTap: () => onActionSelected('file')),
-      _MoreItem(icon: Icons.scanner_outlined, label: '扫描', onTap: () => onActionSelected('scan')),
-      _MoreItem(icon: Icons.call_outlined, label: '通话', onTap: () => onActionSelected('call')),
-      _MoreItem(icon: Icons.more_horiz_outlined, label: '更多', onTap: () => onActionSelected('more')),
+      _MoreItem(
+          icon: Icons.photo_library_outlined,
+          label: '相册',
+          onTap: () => onActionSelected('album')),
+      _MoreItem(
+          icon: Icons.folder_outlined,
+          label: '文件',
+          onTap: () => onActionSelected('file')),
+      _MoreItem(
+          icon: Icons.scanner_outlined,
+          label: '扫描',
+          onTap: () => onActionSelected('scan')),
+      _MoreItem(
+          icon: Icons.call_outlined,
+          label: '通话',
+          onTap: () => onActionSelected('call')),
+      _MoreItem(
+          icon: Icons.more_horiz_outlined,
+          label: '更多',
+          onTap: () => onActionSelected('more')),
     ];
 
     return Container(
@@ -42,7 +57,9 @@ class MoreArea extends StatelessWidget {
         scrollDirection: Axis.horizontal, // 单行展示
         physics: const NeverScrollableScrollPhysics(), // 禁止滚动
         itemCount: items.length,
-        padding: EdgeInsets.only(left: moreAreaListViewPadding, right: moreAreaListViewPadding), // 应用 ListView 的左右内边距
+        padding: EdgeInsets.only(
+            left: moreAreaListViewPadding,
+            right: moreAreaListViewPadding), // 应用 ListView 的左右内边距
         itemBuilder: (context, index) {
           return SizedBox(
             width: itemContentWidth, // 每个item的固定宽度
@@ -115,5 +132,3 @@ class _MoreGridItem extends StatelessWidget {
     );
   }
 }
-
-

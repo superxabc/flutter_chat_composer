@@ -1,5 +1,3 @@
-
-
 enum ChatInputMode {
   idle,
   text,
@@ -37,7 +35,7 @@ class ChatContent {
   final String? imageFilePath;
   final String? filePath;
   final Map<String, dynamic>? metadata;
-  
+
   const ChatContent({
     required this.type,
     this.text,
@@ -77,7 +75,7 @@ class ChatInputError {
   final ChatPermissionType? permissionType;
   final int? maxFileSize;
   final int? actualFileSize;
-  
+
   const ChatInputError({
     required this.type,
     required this.message,
@@ -97,5 +95,3 @@ enum VoiceGestureState {
   recording,
   cancelMode,
 }
-
- 

@@ -5,14 +5,14 @@ class ChatComposerTheme {
   final ChatThemeSizes sizes;
   final ChatThemeStyles styles;
   final ChatThemeDecorations decorations;
-  
+
   const ChatComposerTheme({
     required this.colors,
     required this.sizes,
     required this.styles,
     required this.decorations,
   });
-  
+
   static ChatComposerTheme flat() {
     const techBlue = Color(0xFF007AFF);
     return ChatComposerTheme(
@@ -40,7 +40,7 @@ class ChatComposerTheme {
       ),
     );
   }
-  
+
   static ChatComposerTheme clean() {
     const darkGray = Color(0xFF1A1A1A);
     return ChatComposerTheme(
@@ -79,7 +79,7 @@ class ChatComposerTheme {
       ),
     );
   }
-  
+
   static ChatComposerTheme custom({
     required Color primaryColor,
     Color backgroundColor = Colors.transparent,
@@ -103,36 +103,42 @@ class ChatComposerTheme {
       decorations: ChatThemeDecorations(
         containerDecoration: BoxDecoration(
           color: surfaceColor,
-          border: hasBorder ? Border.all(
-            color: primaryColor,
-            width: 1.0,
-          ) : null,
+          border: hasBorder
+              ? Border.all(
+                  color: primaryColor,
+                  width: 1.0,
+                )
+              : null,
           borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: hasShadow ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8.0,
-              offset: const Offset(0, 2),
-            ),
-          ] : null,
+          boxShadow: hasShadow
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8.0,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
-        shadowDecoration: hasShadow ? BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8.0,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ) : null,
+        shadowDecoration: hasShadow
+            ? BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8.0,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              )
+            : null,
       ),
     );
   }
-  
+
   factory ChatComposerTheme.fromMaterial(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
     final primaryColor = theme.colorScheme.primary;
-    
+
     return ChatComposerTheme(
       colors: ChatThemeColors(
         primary: primaryColor,
@@ -153,23 +159,27 @@ class ChatComposerTheme {
             width: 1.0,
           ),
           borderRadius: BorderRadius.circular(16.0),
-          boxShadow: isDark ? null : [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8.0,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8.0,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
-        shadowDecoration: isDark ? null : BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8.0,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        shadowDecoration: isDark
+            ? null
+            : BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8.0,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -183,7 +193,7 @@ class ChatThemeColors {
   final Color hint;
   final Color disabled;
   final Color error;
-  
+
   const ChatThemeColors({
     required this.primary,
     required this.background,
@@ -204,7 +214,7 @@ class ChatThemeSizes {
   final double buttonGap;
   final double lineHeight;
   final EdgeInsets containerInset;
-  
+
   const ChatThemeSizes({
     this.inputContainerHeight = 60.0,
     this.inputToolbarHeight = 48.0,
@@ -223,7 +233,7 @@ class ChatThemeStyles {
   final TextStyle buttonText;
   final Duration animationDuration;
   final Curve animationCurve;
-  
+
   const ChatThemeStyles({
     this.inputText = const TextStyle(
       fontSize: 16.0,
@@ -247,7 +257,7 @@ class ChatThemeStyles {
 class ChatThemeDecorations {
   final BoxDecoration containerDecoration;
   final BoxDecoration? shadowDecoration;
-  
+
   const ChatThemeDecorations({
     required this.containerDecoration,
     this.shadowDecoration,
@@ -263,7 +273,7 @@ class ChatComposerConfig {
   final int minTextLines;
   final int maxTextLines;
   final int maxVoiceDuration;
-  
+
   const ChatComposerConfig({
     this.enableVoice = true,
     this.enableCamera = true,
@@ -280,4 +290,4 @@ enum ChatThemeStyle {
   flat,
   clean,
   custom,
-} 
+}

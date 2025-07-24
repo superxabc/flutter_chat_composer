@@ -15,52 +15,52 @@ import 'chat_input_types.dart';
 class ChatComposer extends StatefulWidget {
   /// 必需回调 - 内容提交
   final Function(ChatContent content) onSubmit;
-  
+
   /// 可选回调
   final Function(ChatInputMode mode)? onModeChange;
   final Function(VoiceRecordingState state)? onVoiceRecordingStateChange;
   final Function(String text)? onTextChange;
   final Function(ChatInputError error)? onError;
   final Function(ChatInputStatus status)? onStatusChange;
-  
+
   /// 主题风格
   final ChatThemeStyle themeStyle;
-  
+
   /// 自定义主题（当themeStyle为custom时使用）
   final ChatComposerTheme? theme;
-  
+
   /// 配置
   final ChatComposerConfig config;
-  
+
   /// 文本配置
   final String? placeholder;
   final String sendHintText;
   final String holdToTalkText;
-  
+
   /// 控制器（可选，用于外部控制）
   final ChatInputController? controller;
-  
+
   /// 文本控制器（可选）
   final TextEditingController? textController;
-  
+
   /// 焦点节点（可选）
   final FocusNode? focusNode;
-  
+
   /// 更多按钮点击回调
   final VoidCallback? onMoreButtonTap;
-  
+
   /// 初始文本
   final String? initialText;
-  
+
   /// 是否自动聚焦
   final bool autoFocus;
-  
+
   /// 是否启用
   final bool enabled;
-  
+
   /// 背景颜色（支持纯色或透明）
   final Color? backgroundColor;
-  
+
   /// 防抖延迟
   final int debounceDelay;
 
@@ -93,19 +93,16 @@ class ChatComposer extends StatefulWidget {
   State<ChatComposer> createState() => _ChatComposerState();
 }
 
-class _ChatComposerState extends State<ChatComposer> 
+class _ChatComposerState extends State<ChatComposer>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  
   late ChatInputController _controller;
   late TextEditingController _textController;
   late FocusNode _focusNode;
-  
+
   late ChatComposerTheme _theme;
-  
+
   Timer? _debounceTimer;
   StreamSubscription<ConnectivityResult>? _connectivitySubscription;
-  
-
 
   @override
   void initState() {
@@ -116,13 +113,13 @@ class _ChatComposerState extends State<ChatComposer>
     _initializeListeners();
     _initializeConnectivity();
   }
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _initializeTheme();
   }
-  
+
   @override
   void didUpdateWidget(ChatComposer oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -131,26 +128,28 @@ class _ChatComposerState extends State<ChatComposer>
       _initializeTheme();
     }
   }
-  
+
   void _initializeComponents() {
-    _controller = widget.controller ?? ChatInputController(
-      enableHapticFeedback: widget.config.enableHapticFeedback,
-      maxTextLength: widget.config.maxTextLength,
-      maxVoiceDuration: widget.config.maxVoiceDuration,
-      onSubmit: widget.onSubmit,
-      onModeChange: widget.onModeChange,
-      onVoiceRecordingStateChange: widget.onVoiceRecordingStateChange,
-      onError: _handleError,
-      onStatusChange: widget.onStatusChange,
-    );
-    
-    _textController = widget.textController ?? TextEditingController(
-      text: widget.initialText,
-    );
-    
+    _controller = widget.controller ??
+        ChatInputController(
+          enableHapticFeedback: widget.config.enableHapticFeedback,
+          maxTextLength: widget.config.maxTextLength,
+          maxVoiceDuration: widget.config.maxVoiceDuration,
+          onSubmit: widget.onSubmit,
+          onModeChange: widget.onModeChange,
+          onVoiceRecordingStateChange: widget.onVoiceRecordingStateChange,
+          onError: _handleError,
+          onStatusChange: widget.onStatusChange,
+        );
+
+    _textController = widget.textController ??
+        TextEditingController(
+          text: widget.initialText,
+        );
+
     _focusNode = widget.focusNode ?? FocusNode();
   }
-  
+
   void _initializeTheme() {
     if (widget.theme != null) {
       _theme = widget.theme!;
@@ -167,7 +166,7 @@ class _ChatComposerState extends State<ChatComposer>
           break;
       }
     }
-    
+
     // 应用背景色覆盖
     if (widget.backgroundColor != null) {
       _theme = ChatComposerTheme.custom(
@@ -179,16 +178,14 @@ class _ChatComposerState extends State<ChatComposer>
       );
     }
   }
-  
 
-  
   void _initializeListeners() {
     WidgetsBinding.instance.addObserver(this);
     _textController.addListener(_handleTextChange);
     _focusNode.addListener(_handleFocusChange);
-    
+
     _controller.addListener(_handleControllerChange);
-    
+
     if (widget.autoFocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -197,7 +194,7 @@ class _ChatComposerState extends State<ChatComposer>
       });
     }
   }
-  
+
   void _initializeConnectivity() {
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
       (ConnectivityResult result) {
@@ -211,14 +208,14 @@ class _ChatComposerState extends State<ChatComposer>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     if (state == AppLifecycleState.paused) {
       if (_controller.isRecording) {
         _controller.cancelVoiceRecording();
       }
     }
   }
-  
+
   @override
   void dispose() {
     _disposeControllers();
@@ -228,54 +225,58 @@ class _ChatComposerState extends State<ChatComposer>
     _disposeSubscriptions();
     super.dispose();
   }
-  
+
   void _disposeControllers() {
     if (widget.controller == null) {
       _controller.dispose();
     }
     if (widget.textController == null) {
-    _textController.dispose();
+      _textController.dispose();
     }
     if (widget.focusNode == null) {
       _focusNode.dispose();
     }
   }
-  
 
-  
   void _disposeListeners() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.removeListener(_handleControllerChange);
   }
-  
+
   void _disposeTimers() {
     _debounceTimer?.cancel();
   }
-  
+
   void _disposeSubscriptions() {
     _connectivitySubscription?.cancel();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    
+
     // Calculate MoreArea's dynamic height
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double chatComposerHorizontalPadding = _theme.sizes.containerInset.horizontal;
-    final double availableWidthForMoreArea = screenWidth - chatComposerHorizontalPadding;
+    final double chatComposerHorizontalPadding =
+        _theme.sizes.containerInset.horizontal;
+    final double availableWidthForMoreArea =
+        screenWidth - chatComposerHorizontalPadding;
 
     const double moreAreaListViewPadding = 0.0;
     const double itemSpacing = 16.0;
     const int itemCount = 5;
 
-    final double widthForItemsAndInternalSpacing = availableWidthForMoreArea - (2 * moreAreaListViewPadding);
-    final double itemContentWidth = (widthForItemsAndInternalSpacing - (itemCount - 1) * itemSpacing) / itemCount;
-    
+    final double widthForItemsAndInternalSpacing =
+        availableWidthForMoreArea - (2 * moreAreaListViewPadding);
+    final double itemContentWidth =
+        (widthForItemsAndInternalSpacing - (itemCount - 1) * itemSpacing) /
+            itemCount;
+
     const double textHeight = 11.0 * 1.2;
     const double safetyMargin = 6.0;
-    final double moreGridItemHeight = itemContentWidth + 6.0 + textHeight + safetyMargin;
-    
+    final double moreGridItemHeight =
+        itemContentWidth + 6.0 + textHeight + safetyMargin;
+
     final bool shouldShowMoreArea = _controller.showMoreArea;
 
     // 提前构建MoreArea和空容器，避免在AnimatedSwitcher中即时构建，并保持代码一致性
@@ -299,7 +300,7 @@ class _ChatComposerState extends State<ChatComposer>
       key: const ValueKey('empty'),
       height: 0,
     );
-    
+
     // 计算底部容器的总高度
     double bottomContainerHeight;
     if (_controller.currentMode == ChatInputMode.text) {
@@ -340,7 +341,8 @@ class _ChatComposerState extends State<ChatComposer>
                 enabled: widget.enabled,
               ),
               // 仅在MoreArea显示时才添加间距
-              if (shouldShowMoreArea && _controller.currentMode != ChatInputMode.text)
+              if (shouldShowMoreArea &&
+                  _controller.currentMode != ChatInputMode.text)
                 const SizedBox(height: 16.0),
               // 统一的底部动画容器
               AnimatedContainer(
@@ -356,7 +358,8 @@ class _ChatComposerState extends State<ChatComposer>
                         : _theme.styles.animationDuration,
                     switchInCurve: Curves.decelerate,
                     switchOutCurve: Curves.decelerate,
-                    transitionBuilder: (Widget child, Animation<double> animation) {
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
                       return SlideTransition(
                         position: Tween<Offset>(
                           begin: const Offset(0.0, 1.0), // 从下方开始
@@ -365,7 +368,8 @@ class _ChatComposerState extends State<ChatComposer>
                         child: child,
                       );
                     },
-                    child: shouldShowMoreArea && _controller.currentMode != ChatInputMode.text
+                    child: shouldShowMoreArea &&
+                            _controller.currentMode != ChatInputMode.text
                         ? moreAreaWidget
                         : emptyWidget, // 空容器，但保持动画连续性
                   ),
@@ -383,10 +387,10 @@ class _ChatComposerState extends State<ChatComposer>
     if (!widget.enabled) return;
     _controller.switchToTextMode();
   }
-  
+
   void _handleModeToggle() {
     if (!widget.enabled) return;
-    
+
     switch (_controller.currentMode) {
       case ChatInputMode.idle:
         _controller.switchToVoiceMode();
@@ -399,10 +403,10 @@ class _ChatComposerState extends State<ChatComposer>
         break;
     }
   }
-  
+
   Future<void> _handleCameraCapture() async {
     if (!widget.enabled) return;
-    
+
     try {
       final action = await showDialog<String>(
         context: context,
@@ -425,14 +429,14 @@ class _ChatComposerState extends State<ChatComposer>
           ),
         ),
       );
-      
+
       if (action != null) {
         final content = ChatContent(
           type: ChatContentType.image,
           imageFilePath: 'path/to/selected/image.jpg',
           metadata: {'source': action},
         );
-        
+
         widget.onSubmit(content);
       }
     } catch (e) {
@@ -459,7 +463,7 @@ class _ChatComposerState extends State<ChatComposer>
     } else {
       // 如果没有处于文本输入模式，直接根据MoreArea的展开/关闭状态进行取反操作
       _controller.handleMoreButtonTap();
-      
+
       // 如果MoreArea现在是可见的，确保键盘收起
       if (_controller.showMoreArea) {
         if (_focusNode.hasFocus) {
@@ -468,67 +472,66 @@ class _ChatComposerState extends State<ChatComposer>
         }
       }
     }
-    
+
     widget.onMoreButtonTap?.call();
   }
-  
+
   void _handleSubmit() {
     if (!widget.enabled) return;
-    
+
     final text = _textController.text;
-    
+
     // 使用控制器的提交逻辑
     _controller.submitText(text);
-    
+
     // 清空文本控制器
     _textController.clear();
-
   }
 
   void _handleTextChange() {
     final text = _textController.text;
-    
+
     // 防抖处理
     _debounceTimer?.cancel();
     _debounceTimer = Timer(Duration(milliseconds: widget.debounceDelay), () {
       widget.onTextChange?.call(text);
     });
   }
-  
+
   void _handleFocusChange() {
     if (_focusNode.hasFocus) {
       // 如果MoreArea显示，不执行任何模式切换，保持当前状态
       if (_controller.showMoreArea) {
         return;
       }
-      
+
       // 如果MoreArea未显示且当前不是文本模式，则切换到文本模式
       if (_controller.currentMode != ChatInputMode.text) {
         _controller.switchToTextMode();
       }
     } else {
       // 如果焦点丢失且MoreArea未显示，且当前是文本模式，则切换回idle模式
-      if (!_controller.showMoreArea && _controller.currentMode == ChatInputMode.text) {
+      if (!_controller.showMoreArea &&
+          _controller.currentMode == ChatInputMode.text) {
         _controller.switchToIdleMode();
       }
     }
   }
-  
+
   void _handleControllerChange() {
-    setState(() {
-    });
+    setState(() {});
   }
-  
+
   void _handleError(ChatInputError error) {
     ChatErrorHandler.handleError(
       context,
       error,
       onRetry: _getRetryCallback(error),
     );
-    
+
     widget.onError?.call(error);
   }
-  
+
   VoidCallback? _getRetryCallback(ChatInputError error) {
     switch (error.type) {
       case ChatInputErrorType.networkError:
@@ -539,10 +542,10 @@ class _ChatComposerState extends State<ChatComposer>
         return null;
     }
   }
-  
+
   void _showNetworkError() {
     if (!mounted) return;
-    
+
     _handleError(const ChatInputError(
       type: ChatInputErrorType.networkError,
       message: '网络连接已断开',
@@ -568,7 +571,7 @@ class _ChatComposerState extends State<ChatComposer>
         break;
     }
   }
-  
+
   Future<void> _handleGallerySelection() async {
     try {
       const content = ChatContent(
@@ -585,7 +588,7 @@ class _ChatComposerState extends State<ChatComposer>
       ));
     }
   }
-  
+
   Future<void> _handleFileSelection() async {
     try {
       const content = ChatContent(
@@ -602,19 +605,19 @@ class _ChatComposerState extends State<ChatComposer>
       ));
     }
   }
-  
+
   void _handleScanFunction() {
     _showToast('扫描功能开发中');
   }
-  
+
   void _handleCallFunction() {
     _showToast('通话功能开发中');
   }
-  
+
   void _handleMoreFunction() {
     _showToast('更多功能开发中');
   }
-  
+
   void _showToast(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -628,4 +631,4 @@ class _ChatComposerState extends State<ChatComposer>
       ),
     );
   }
-} 
+}
