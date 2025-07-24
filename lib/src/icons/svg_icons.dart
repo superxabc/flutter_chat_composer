@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-// 发送图标的颜色映射器，只替换currentColor部分，保持白色箭头
-class _SendIconColorMapper extends ColorMapper {
+/// 支持基于 id 精准替换 SVG 元素颜色
+class IdBasedColorMapper extends ColorMapper {
   final Color themeColor;
+  final Set<String> idTargets;
 
-  const _SendIconColorMapper(this.themeColor);
+  const IdBasedColorMapper({
+    required this.themeColor,
+    this.idTargets = const {'background'},
+  });
 
   @override
   Color substitute(
@@ -14,13 +18,19 @@ class _SendIconColorMapper extends ColorMapper {
     String attributeName,
     Color color,
   ) {
-    // 只对fill="currentColor"的元素应用主题色
-    // 白色箭头(#FFFFFF)保持不变
-    if (attributeName == 'fill' && color == const Color(0xFF000000)) {
-      // currentColor在解析时通常被解析为黑色，这里替换为主题色
+    // 不修改白色箭头
+    if (color == const Color(0xFFFFFFFF)) return color;
+
+    // 优先基于 ID 替换
+    if (id != null && idTargets.contains(id)) {
       return themeColor;
     }
-    // 保持其他颜色不变，包括白色箭头
+
+    // fallback: 兼容 fill="currentColor" 被解析为黑色
+    if (attributeName == 'fill' && color == const Color(0xFF000000)) {
+      return themeColor;
+    }
+
     return color;
   }
 }
@@ -44,48 +54,27 @@ class SvgIcon extends StatelessWidget {
     final iconSize = size ?? 24;
 
     try {
-      if (usesCurrentColor && color != null) {
-        // 对于使用currentColor的SVG，使用ColorFilter替代
-        // flutter_svg的currentColor机制在某些情况下不够可靠
-        return SvgPicture.asset(
-          assetPath,
-          package: 'flutter_chat_composer',
-          width: iconSize,
-          height: iconSize,
-          colorFilter: ColorFilter.mode(color!, BlendMode.srcIn),
-          placeholderBuilder: (BuildContext context) {
-            return Icon(
-              _getFallbackIcon(assetPath),
-              size: iconSize,
-              color: color,
-            );
-          },
-        );
-      } else {
-        // 对于其他SVG，使用ColorFilter
-        return SvgPicture.asset(
-          assetPath,
-          package: 'flutter_chat_composer',
-          width: iconSize,
-          height: iconSize,
-          colorFilter:
-              color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
-          placeholderBuilder: (BuildContext context) {
-            return Icon(
-              _getFallbackIcon(assetPath),
-              size: iconSize,
-              color: color,
-            );
-          },
-        );
-      }
-    } catch (e) {
-      return Icon(
-        _getFallbackIcon(assetPath),
-        size: iconSize,
-        color: color,
+      return SvgPicture.asset(
+        assetPath,
+        package: 'flutter_chat_composer',
+        width: iconSize,
+        height: iconSize,
+        colorFilter: (usesCurrentColor && color != null)
+            ? ColorFilter.mode(color!, BlendMode.srcIn)
+            : (color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null),
+        placeholderBuilder: (context) => _fallbackIcon(iconSize),
       );
+    } catch (e) {
+      return _fallbackIcon(iconSize);
     }
+  }
+
+  Widget _fallbackIcon(double iconSize) {
+    return Icon(
+      _getFallbackIcon(assetPath),
+      size: iconSize,
+      color: color,
+    );
   }
 
   IconData _getFallbackIcon(String assetPath) {
@@ -105,19 +94,18 @@ class ChatComposerSvgIcons {
   static const String _basePath = 'assets/icons/';
 
   static const String microphone = '${_basePath}custom_voice.svg';
-
   static const String keyboard = '${_basePath}custom_keyboard.svg';
-
   static const String send = '${_basePath}custom_send.svg';
-
   static const String camera = '${_basePath}custom_camera.svg';
-
   static const String more = '${_basePath}custom_more.svg';
-
   static const String sound = '${_basePath}custom_sound.svg';
 
-  static Widget icon(String assetPath,
-      {double? size, Color? color, bool usesCurrentColor = false}) {
+  static Widget icon(
+    String assetPath, {
+    double? size,
+    Color? color,
+    bool usesCurrentColor = false,
+  }) {
     return SvgIcon(
       assetPath: assetPath,
       size: size,
@@ -127,11 +115,11 @@ class ChatComposerSvgIcons {
   }
 
   static Widget microphoneIcon({double? size, Color? color}) {
-    return icon(microphone, size: size, color: color, usesCurrentColor: false);
+    return icon(microphone, size: size, color: color);
   }
 
   static Widget keyboardIcon({double? size, Color? color}) {
-    return icon(keyboard, size: size, color: color, usesCurrentColor: false);
+    return icon(keyboard, size: size, color: color);
   }
 
   static Widget sendIcon({double? size, Color? color}) {
@@ -142,20 +130,23 @@ class ChatComposerSvgIcons {
         package: 'flutter_chat_composer',
         width: size ?? 24,
         height: size ?? 24,
-        colorMapper: color != null ? _SendIconColorMapper(color) : null,
+        colorMapper: color != null
+            ? IdBasedColorMapper(themeColor: color)
+            : null,
       ),
     );
   }
 
   static Widget cameraIcon({double? size, Color? color}) {
-    return icon(camera, size: size, color: color, usesCurrentColor: false);
+    return icon(camera, size: size, color: color);
   }
 
   static Widget moreIcon({double? size, Color? color}) {
-    return icon(more, size: size, color: color, usesCurrentColor: false);
+    return icon(more, size: size, color: color);
   }
 
   static Widget soundIcon({double? size, Color? color}) {
-    return icon(sound, size: size, color: color, usesCurrentColor: false);
+    return icon(sound, size: size, color: color);
   }
 }
+
